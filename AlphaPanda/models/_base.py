@@ -9,5 +9,7 @@ def register_model(name):
     return decorator
 
 
-def get_model(cfg):
-    return _MODEL_DICT[cfg.type](cfg)
+def get_model(cfg, device):
+    model = _MODEL_DICT[cfg.type](cfg, device=device)
+    print("Get model before to(device): {}".format(next(model.parameters()).device))
+    return model

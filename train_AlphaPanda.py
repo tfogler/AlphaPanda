@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
     # Model
     logger.info('Building model...')
-    model = get_model(config.model).to(args.device)
+    model = get_model(config.model, args.device)
     logger.info('Number of parameters: %d' % count_parameters(model))
   
 

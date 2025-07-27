@@ -19,19 +19,22 @@ resolution_to_num_atoms = {
 @register_model('diffab')
 class DiffusionAntibodyDesign(nn.Module):
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, device="cuda"):
         super().__init__()
         self.cfg = cfg
-
+        self.device = device
+        
         num_atoms = resolution_to_num_atoms[cfg.get('resolution', 'full')]
-        self.residue_embed = ResidueEmbedding(cfg.res_feat_dim, num_atoms)
-        self.pair_embed = PairEmbedding(cfg.pair_feat_dim, num_atoms)
+        self.residue_embed = ResidueEmbedding(cfg.res_feat_dim, num_atoms).to(device)
+        self.pair_embed = PairEmbedding(cfg.pair_feat_dim, num_atoms).to(device)
 
         self.diffusion = FullDPM(
             cfg.res_feat_dim,
             cfg.pair_feat_dim,
             **cfg.diffusion,
-        )
+        ).to(device)
+        for name, param in self.named_parameters():
+            print("{name} device: {device}".format(name=name, device=param.device))
 
     def encode(self, batch , remove_structure, remove_sequence):
         """
@@ -85,6 +88,7 @@ class DiffusionAntibodyDesign(nn.Module):
         return res_feat, pair_feat, R, p
     
     def forward(self, batch):
+        # print("[Forward] model on {}".format(next(self.parameters()).device))
         mask_generate = batch['generate_flag']
         mask_res = batch['mask']
         res_feat, pair_feat, R_0, p_0 = self.encode(

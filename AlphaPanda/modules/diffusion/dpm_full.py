@@ -157,6 +157,10 @@ class EpsilonNet(nn.Module):
         self.TreeCNN=TreeCNNmodels.seqPred(nic=35, nf=self.nf, momentum=0.01) # huyue 14+1+20
         self.TreeCNN.apply(TreeCNNmodels.init_ortho_weights)
 
+        for name, param in self.named_parameters():
+            print("{name} device: {device}".format(name=name, device=param.device))
+
+
     def forward(self, v_t, p_t, s_t, res_feat, pair_feat, beta, mask_generate, mask_res, batch):
         """
         Args:

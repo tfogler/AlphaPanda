@@ -142,6 +142,7 @@ def preprocess_sabdab_structure(task):
     pdb_path = task['pdb_path']
 
     parser = PDB.PDBParser(QUIET=True)
+    # print(f"{pdb_path = }")
     model = parser.get_structure(id, pdb_path)[0]
 
     parsed = {
@@ -313,6 +314,13 @@ class SAbDabDataset(Dataset):
                 'entry': entry,
                 'pdb_path': pdb_path,
             })
+
+        print(f"""data_list = joblib.Parallel(
+            n_jobs = max({joblib.cpu_count() // 2}, 1),
+        )(
+            joblib.delayed(preprocess_sabdab_structure)(task)
+            for task in tqdm(tasks, dynamic_ncols=True, desc='Preprocess')
+        )""")
 
         data_list = joblib.Parallel(
             n_jobs = max(joblib.cpu_count() // 2, 1),
