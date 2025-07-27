@@ -1,0 +1,8 @@
+logs/*
+data/processed/*
+__pycache__/*
+*.fasta
+*.tsv
+*.pdb
+*.txt
+*.yml
