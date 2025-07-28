@@ -43,6 +43,10 @@ if __name__ == '__main__':
     parser.add_argument('--finetune', type=str, default=None)
     args = parser.parse_args()
 
+    if args.device:
+        print('Device:', args.device)
+        torch.set_default_device(args.device)
+
     # Load configs
     config, config_name = load_config(args.config)
     seed_all(config.train.seed)
