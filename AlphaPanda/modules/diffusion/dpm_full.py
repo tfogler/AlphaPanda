@@ -50,22 +50,22 @@ def rotation_matrix_cosine_loss(R_pred, R_true):
 
 
 class EpsilonNet(nn.Module):
-
-    def __init__(self, res_feat_dim, pair_feat_dim, num_layers, encoder_opt={}):
+    
+    def __init__(self, res_feat_dim, pair_feat_dim, num_layers, encoder_opt={}, device="cuda"):
         super().__init__()
-        self.current_sequence_embedding = nn.Embedding(25, res_feat_dim)  # 22 is padding
+        self.current_sequence_embedding = nn.Embedding(25, res_feat_dim).to(device)  # 22 is padding
         self.res_feat_dim=res_feat_dim
         self.nf=64
         self.res_feat_mixer = nn.Sequential(
             nn.Linear(res_feat_dim * 2, res_feat_dim), nn.ReLU(),
             nn.Linear(res_feat_dim, res_feat_dim),
-        )
+        ).to(device)
         #huyue add Evofomer pairwise block.
         #self.pairwise_attention= PairwiseAttentionBlock( dim = dim, dim_head = dim_head, heads = heads, seq_len = max_seq_len)
        # self.evoformer=Evoformer(
         #              dim = res_feat_dim,
          ##           depth = 2,
-           #     seq_len = 2048,
+           #     seq_len = 2048,q
             #        heads = 2,
              #       dim_head = 64,
               #      attn_dropout = 0.,
@@ -80,7 +80,7 @@ class EpsilonNet(nn.Module):
         #)
         
         #self.pair_ff=FeedForward(dim = pair_feat_dim, dropout =  0.)
-
+        
         #huyue Geo tranformer
         self.d_model=256
         #self.geo_trans= GeoTransformer(nhead=256, num_encoder_layers=10, d_model=512) #huyue .to(device)
@@ -89,10 +89,10 @@ class EpsilonNet(nn.Module):
         #self.geo_trans_1= GeoTransformer(nhead=32, num_encoder_layers=5, d_model=256) #huyue .to(device)
         #self.geo_trans_2= GeoTransformer(nhead=32, num_encoder_layers=5, d_model=128) #huyue .to(device)
         #self.geo_trans_3= GeoTransformer(nhead=32, num_encoder_layers=5, d_model=128) #huyue .to(device)
-
+        
         #end
-        self.encoder = GAEncoder(res_feat_dim, pair_feat_dim, num_layers, **encoder_opt)
-
+        self.encoder = GAEncoder(res_feat_dim, pair_feat_dim, num_layers, **encoder_opt).to(device)
+        
         #self.eps_crd_net = nn.Sequential(
         
         #    nn.Conv1d(self.nf * 4 + res_feat_dim+3, self.nf * 4, 3, 1, 1, bias=False),
@@ -105,7 +105,7 @@ class EpsilonNet(nn.Module):
         #    nn.Dropout(0.1),
         #    nn.Conv1d(self.nf * 4, 3, 3, 1, 1, bias=False)
         #)
-
+        
         #self.eps_rot_net = nn.Sequential(
         #    nn.Conv1d(self.nf * 4 + res_feat_dim+3, self.nf * 4, 3, 1, 1, bias=False),
         #    nn.BatchNorm1d(self.nf * 4, momentum=0.01),
@@ -117,7 +117,7 @@ class EpsilonNet(nn.Module):
         #    nn.Dropout(0.1),
         #    nn.Conv1d(self.nf * 4, 3, 3, 1, 1, bias=False)
         #)
-
+        
         #self.eps_seq_net = nn.Sequential(
         #    nn.Conv1d(self.nf * 4 + res_feat_dim+3, self.nf * 4, 3, 1, 1, bias=False),
         #    nn.BatchNorm1d(self.nf * 4, momentum=0.01),
@@ -133,32 +133,32 @@ class EpsilonNet(nn.Module):
             nn.Linear(self.nf * 4 + res_feat_dim+3, res_feat_dim * 2 ), nn.ReLU(),
             nn.Linear(res_feat_dim * 2 , res_feat_dim), nn.ReLU(),
             nn.Linear(res_feat_dim, 3)
-        )
-
+        ).to(device)
+        
         self.eps_rot_net = nn.Sequential(
             nn.Linear(self.nf * 4 + res_feat_dim+3, res_feat_dim * 2), nn.ReLU(),
             nn.Linear(res_feat_dim * 2 , res_feat_dim), nn.ReLU(),
             nn.Linear(res_feat_dim, 3)
-        )
-
+        ).to(device)
+        
         self.eps_seq_net = nn.Sequential(
             nn.Linear(self.nf * 4 + res_feat_dim+3, res_feat_dim * 2), nn.ReLU(),
             #nn.Conv1d(self.nf * 4 + res_feat_dim+3, self.nf * 4, 3, 1, 1, bias=False),
             nn.Linear(res_feat_dim * 2, res_feat_dim), nn.ReLU(),
             nn.Linear(res_feat_dim, 20), nn.Softmax(dim=-1) 
-        )
-
-
-
+        ).to(device)
+        
+        
+        
         #self.TreeCNN=TreeCNNmodels.seqPred(nic=len(AlphaPanda.modules.dcnn.common.atoms.atoms) + 1 + 21, nf=64, momentum=0.01)
         #self.TreeCNN=TreeCNNmodels.seqPred(nic=13, nf=self.nf, momentum=0.01)
         #self.TreeCNN=TreeCNNmodels.seqPred(nic=35, nf=self.nf, momentum=0.01) # huyue 14+1+20
         #self.TreeCNN=TreeCNNmodels.seqPred(nic=14, nf=self.nf, momentum=0.01) # huyue 14+1+20
-        self.TreeCNN=TreeCNNmodels.seqPred(nic=35, nf=self.nf, momentum=0.01) # huyue 14+1+20
+        self.TreeCNN=TreeCNNmodels.seqPred(nic=35, nf=self.nf, momentum=0.01).to(device) # huyue 14+1+20
         self.TreeCNN.apply(TreeCNNmodels.init_ortho_weights)
-
-        for name, param in self.named_parameters():
-            print("{name} device: {device}".format(name=name, device=param.device))
+        
+        # for name, param in self.named_parameters():
+        #     print("{name} device: {device}".format(name=name, device=param.device))
 
 
     def forward(self, v_t, p_t, s_t, res_feat, pair_feat, beta, mask_generate, mask_res, batch):
@@ -842,7 +842,7 @@ class FullDPM(nn.Module):
         position_scale=[10.0],
     ):
         super().__init__()
-        self.eps_net = EpsilonNet(res_feat_dim, pair_feat_dim, **eps_net_opt)
+        self.eps_net = EpsilonNet(res_feat_dim, pair_feat_dim, **eps_net_opt, device="cuda")
         self.num_steps = num_steps
         self.trans_rot = RotationTransition(num_steps, **trans_rot_opt)
         self.trans_pos = PositionTransition(num_steps, **trans_pos_opt)
@@ -851,6 +851,11 @@ class FullDPM(nn.Module):
         self.register_buffer('position_mean', torch.FloatTensor(position_mean).view(1, 1, -1))
         self.register_buffer('position_scale', torch.FloatTensor(position_scale).view(1, 1, -1))
         self.register_buffer('_dummy', torch.empty([0, ]))
+        
+        for name, param in self.named_parameters():
+            print("{name} device: {device}".format(name=name, device=param.device))
+        print("{name} device: {device}".format(name="self.eps_net", device=print(next(self.parameters()).device)))
+        
 
     def _normalize_position(self, p):
         p_norm = (p - self.position_mean) / self.position_scale

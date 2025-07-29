@@ -74,12 +74,14 @@ if __name__ == '__main__':
     logger.info('Loading dataset...')
     train_dataset = get_dataset(config.dataset.train)
     val_dataset = get_dataset(config.dataset.val)
+    train_generator = torch.Generator(device=args.device).manual_seed(config.train.seed)
     train_iterator = inf_iterator(DataLoader(
         train_dataset, 
         batch_size=config.train.batch_size, 
         collate_fn=PaddingCollate(), 
         shuffle=True,
-        num_workers=args.num_workers
+        num_workers=args.num_workers,
+        generator=train_generator
     ))
     val_loader = DataLoader(val_dataset, batch_size=config.train.batch_size, collate_fn=PaddingCollate(), shuffle=False, num_workers=args.num_workers)
     logger.info('Train %d | Val %d' % (len(train_dataset), len(val_dataset)))

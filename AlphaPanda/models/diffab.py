@@ -33,8 +33,8 @@ class DiffusionAntibodyDesign(nn.Module):
             cfg.pair_feat_dim,
             **cfg.diffusion,
         ).to(device)
-        for name, param in self.named_parameters():
-            print("{name} device: {device}".format(name=name, device=param.device))
+        # for name, param in self.named_parameters():
+        #     print("{name} device: {device}".format(name=name, device=param.device))
 
     def encode(self, batch , remove_structure, remove_sequence):
         """

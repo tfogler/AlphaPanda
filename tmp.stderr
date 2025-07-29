@@ -1,0 +1,28 @@
+/home/truman/miniforge3/envs/alphapanda/lib/python3.8/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: /home/truman/miniforge3/envs/alphapanda/lib/python3.8/site-packages/torchvision/image.so: undefined symbol: _ZN2at4_ops19empty_memory_format4callEN3c108ArrayRefIlEENS2_8optionalINS2_10ScalarTypeEEENS5_INS2_6LayoutEEENS5_INS2_6DeviceEEENS5_IbEENS5_INS2_12MemoryFormatEEE
+  warn(f"Failed to load image Python extension: {e}")
+[2025-07-27 21:26:30,786::train::INFO] Namespace(config='configs/YueTrain/codesign_single_tfogler.yml', debug=False, device='cuda', finetune=None, logdir='./logs', num_workers=4, resume=None, tag='')
+[2025-07-27 21:26:30,786::train::INFO] {'model': {'type': 'diffab', 'res_feat_dim': 128, 'pair_feat_dim': 64, 'diffusion': {'num_steps': 100, 'eps_net_opt': {'num_layers': 6}}, 'train_structure': True, 'train_sequence': True}, 'train': {'loss_weights': {'rot': 1.0, 'pos': 1.0, 'seq': 1.0}, 'max_iters': 100, 'val_freq': 25, 'batch_size': 1, 'seed': 2023, 'max_grad_norm': 100.0, 'optimizer': {'type': 'adam', 'lr': 0.001, 'weight_decay': 0.0, 'beta1': 0.9, 'beta2': 0.999}, 'scheduler': {'type': 'plateau', 'factor': 0.8, 'patience': 10, 'min_lr': 5e-06}}, 'dataset': {'train': {'type': 'sabdab', 'summary_path': '/home/data/YueHuLab/AlphaPanda_training_dataset/all_structures/sabdab_summary_all.tsv', 'chothia_dir': '/home/data/YueHuLab/AlphaPanda_training_dataset/all_structures/chothia', 'processed_dir': '/home/truman/AlphaPanda/data/processed/sabdab', 'split': 'train', 'transform': [{'type': 'mask_single_cdr'}, {'type': 'merge_chains'}, {'type': 'patch_around_anchor'}]}, 'val': {'type': 'sabdab', 'summary_path': '/home/data/YueHuLab/AlphaPanda_training_dataset/all_structures/sabdab_summary_all.tsv', 'chothia_dir': '/home/data/YueHuLab/AlphaPanda_training_dataset/all_structures/chothia', 'processed_dir': '/home/truman/AlphaPanda/data/processed/sabdab', 'split': 'val', 'transform': [{'type': 'mask_single_cdr', 'selection': 'CDR3'}, {'type': 'merge_chains'}, {'type': 'patch_around_anchor'}]}}}
+[2025-07-27 21:26:30,786::train::INFO] Loading dataset...
+Loading entries:   0%|          | 0/13072 [00:00<?, ?it/s]Loading entries:  15%|█▍        | 1904/13072 [00:00<00:00, 19030.63it/s]Loading entries:  31%|███       | 3998/13072 [00:00<00:00, 20152.38it/s]Loading entries:  47%|████▋     | 6109/13072 [00:00<00:00, 20583.84it/s]Loading entries:  63%|██████▎   | 8250/13072 [00:00<00:00, 20908.80it/s]Loading entries:  79%|███████▉  | 10341/13072 [00:00<00:00, 20683.94it/s]Loading entries:  95%|█████████▍| 12410/13072 [00:00<00:00, 19861.28it/s]Loading entries: 100%|██████████| 13072/13072 [00:00<00:00, 20248.94it/s]
+Loading entries:   0%|          | 0/13072 [00:00<?, ?it/s]Loading entries:  17%|█▋        | 2157/13072 [00:00<00:00, 21561.74it/s]Loading entries:  34%|███▎      | 4395/13072 [00:00<00:00, 22039.89it/s]Loading entries:  50%|█████     | 6599/13072 [00:00<00:00, 21983.76it/s]Loading entries:  67%|██████▋   | 8798/13072 [00:00<00:00, 21665.33it/s]Loading entries:  84%|████████▍ | 10966/13072 [00:00<00:00, 21621.24it/s]Loading entries: 100%|██████████| 13072/13072 [00:00<00:00, 21629.68it/s]
+[2025-07-27 21:26:33,043::train::INFO] Train 9687 | Val 20
+[2025-07-27 21:26:33,043::train::INFO] Building model...
+[2025-07-27 21:26:39,370::train::INFO] Number of parameters: 14134790
+Traceback (most recent call last):
+  File "train_AlphaPanda.py", line 200, in <module>
+    train(it)
+  File "train_AlphaPanda.py", line 138, in train
+    loss_dict = model(batch)
+  File "/home/truman/miniforge3/envs/alphapanda/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/truman/AlphaPanda/AlphaPanda/models/diffab.py", line 108, in forward
+    loss_dict = self.diffusion(
+  File "/home/truman/miniforge3/envs/alphapanda/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/truman/AlphaPanda/AlphaPanda/modules/diffusion/dpm_full.py", line 893, in forward
+    v_pred, R_pred, eps_p_pred, c_denoised = self.eps_net(
+  File "/home/truman/miniforge3/envs/alphapanda/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/truman/AlphaPanda/AlphaPanda/modules/diffusion/dpm_full.py", line 262, in forward
+    test_Z_0=test_Z_00.masked_fill(mask=~mask_res,value=0)
+RuntimeError: expected self and mask to be on the same device, but got mask on cuda:0 and self on cpu
