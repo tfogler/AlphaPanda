@@ -2,13 +2,14 @@ import argparse
 import abnumber
 from Bio import PDB
 from Bio.PDB import Model, Chain, Residue, Selection
-from Bio.Data import SCOPData
+# from Bio.Data import SCOPData
+from Bio.Data.PDBData import protein_letters_3to1
 from typing import List, Tuple
 
 
 def biopython_chain_to_sequence(chain: Chain.Chain):
     residue_list = Selection.unfold_entities(chain, 'R')
-    seq = ''.join([SCOPData.protein_letters_3to1.get(r.resname, 'X') for r in residue_list])
+    seq = ''.join([protein_letters_3to1.get(r.resname, 'X') for r in residue_list])
     return seq, residue_list
 
 

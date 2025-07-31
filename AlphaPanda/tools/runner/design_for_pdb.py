@@ -161,7 +161,7 @@ def design_for_pdb(args):
     logger.info('Loading model config and checkpoints: %s' % (config.model.checkpoint))
     ckpt = torch.load(config.model.checkpoint, map_location='cpu')
     cfg_ckpt = ckpt['config']
-    model = get_model(cfg_ckpt.model).to(args.device)
+    model = get_model(cfg_ckpt.model, args.device)
     lsd = model.load_state_dict(ckpt['model'])
     logger.info(str(lsd))
     # Make data variants
