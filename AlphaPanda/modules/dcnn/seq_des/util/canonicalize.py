@@ -1,75 +1,75 @@
 import numpy as np
+import cupy as cp
 import copy
 import glob
 import pickle
 
-
-gly_CB_mu = np.array([-0.5311191 , -0.75842446,  1.2198311 ]) #pickle.load(open("pkl/CB_mu.pkl", "rb"))
+gly_CB_mu = cp.array([-0.5311191 , -0.75842446,  1.2198311 ]) #pickle.load(open("pkl/CB_mu.pkl", "rb"))
 
 
 def get_len(v):
-    return np.sqrt(np.sum(v ** 2, -1))
+    return cp.sqrt(cp.sum(v ** 2, -1))
 
 
 def get_unit_normal(ab, bc):
-    n = np.cross(ab, bc, -1)
+    n = cp.cross(ab, bc, -1)
     length = get_len(n)
     if len(n.shape) > 2:
         length = length[..., None]
-    length=np.where(length!=0,length,1)
+    length=cp.where(length!=0,length,1)
     return n / length 
     #if length.all()!=0 : #huyue
     #    return n / length
     #else:
-         #return n / np.clip(length,0.1,0.2)
+         #return n / cp.clip(length,0.1,0.2)
     #    return n
 
 
 
 def get_angle(v1, v2):
     # get in plane angle between v1, v2 -- cos^-1(v1.v2 / ||v1|| ||v2||)
-    #return np.arccos(np.sum(v1 * v2, -1) / get_len(v1) * get_len(v2))
+    #return cp.arccos(cp.sum(v1 * v2, -1) / get_len(v1) * get_len(v2))
     length1=get_len(v1)
     length2=get_len(v2)
-    length1=np.where(length1!=0,length1,1)
-    length2=np.where(length2!=0,length2,1)
-    #return np.arccos(np.clip(np.sum(v1 * v2, -1) / length1 * length2,-1,1)) # bug ?????
-    return np.arccos(np.clip(np.sum(v1 * v2, -1) / (length1 * length2),-1,1))
+    length1=cp.where(length1!=0,length1,1)
+    length2=cp.where(length2!=0,length2,1)
+    #return cp.arccos(cp.clip(cp.sum(v1 * v2, -1) / length1 * length2,-1,1)) # bug ?????
+    return cp.arccos(cp.clip(cp.sum(v1 * v2, -1) / (length1 * length2),-1,1))
     #if get_len(v1).all()!=0 and get_len(v2).all()!=0:
-    #    return np.arccos(np.clip(np.sum(v1 * v2, -1) / get_len(v1) * get_len(v2),-1,1))
+    #    return cp.arccos(cp.clip(cp.sum(v1 * v2, -1) / get_len(v1) * get_len(v2),-1,1))
     #else:
-    #    return np.arccos(np.clip(np.sum(v1 * v2, -1),-1,1))
-        #return np.arccos(0) #huyue
+    #    return cp.arccos(cp.clip(cp.sum(v1 * v2, -1),-1,1))
+        #return cp.arccos(0) #huyue
 
 
 
 def bdot(a, b):
-    return np.matmul(a, b)
+    return cp.matmul(a, b)
 
 
 def return_align_f(axis, theta):
-    c_theta = np.cos(theta)[..., None]
-    s_theta = np.sin(theta)[..., None]
-    f_rot = lambda v: c_theta * v + s_theta * np.cross(axis, v, axis=-1) + (1 - c_theta) * bdot(axis, v.transpose(0, 2, 1)) * axis
+    c_theta = cp.cos(theta)[..., None]
+    s_theta = cp.sin(theta)[..., None]
+    f_rot = lambda v: c_theta * v + s_theta * cp.cross(axis, v, axis=-1) + (1 - c_theta) * bdot(axis, v.transpose(0, 2, 1)) * axis
     return f_rot
 
 
 def return_batch_align_f(axis, theta, n):
     # n is total number of atoms
-    c_theta = np.cos(theta)
-    s_theta = np.sin(theta)
-    axis = np.repeat(axis, n, axis=1)[:, :, None]
-    c_theta = np.repeat(c_theta, n, axis=1)[:, :, None, None]
-    s_theta = np.repeat(s_theta, n, axis=1)[:, :, None, None]
+    c_theta = cp.cos(theta)
+    s_theta = cp.sin(theta)
+    axis = cp.repeat(axis, n, axis=1)[:, :, None]
+    c_theta = cp.repeat(c_theta, n, axis=1)[:, :, None, None]
+    s_theta = cp.repeat(s_theta, n, axis=1)[:, :, None, None]
 
-    f_rot = lambda v: c_theta * v + s_theta * np.cross(axis, v, axis=-1) + (1 - c_theta) * bdot(axis, v.transpose(0, 1, 3, 2)) * axis
+    f_rot = lambda v: c_theta * v + s_theta * cp.cross(axis, v, axis=-1) + (1 - c_theta) * bdot(axis, v.transpose(0, 1, 3, 2)) * axis
     return f_rot
 
 
 def get_batch_N_CA_C_align(normal, r, n):
     # get fn to align n to positive z_hat, via rotation about x axis (assume N-CA already along x_hat)
     # r is number of residues
-    z = np.repeat(np.array([[0, 0, 1]]), r, 0)[:, None]
+    z = cp.repeat(cp.array([[0, 0, 1]]), r, 0)[:, None]
     theta = get_angle(normal, z)
     axis = get_unit_normal(normal, z)
     return return_align_f(axis, theta), return_batch_align_f(axis, theta, n=n)
@@ -77,7 +77,7 @@ def get_batch_N_CA_C_align(normal, r, n):
 def get_batch_N_CA_C_align_back(normal, r, n): #huyue
     # get fn to align n to positive z_hat, via rotation about x axis (assume N-CA already along x_hat)
     # r is number of residues
-    z = np.repeat(np.array([[0, 0, 1]]), r, 0)[:, None]
+    z = cp.repeat(cp.array([[0, 0, 1]]), r, 0)[:, None]
     theta = get_angle(z,normal)
     axis = get_unit_normal(z,normal)
     return return_align_f(axis, theta), return_batch_align_f(axis, theta, n=n)
@@ -86,7 +86,7 @@ def get_batch_N_CA_C_align_back(normal, r, n): #huyue
 def get_batch_N_CA_align(v, r, n):
     # assuming ca is at (0,0,0), return fn to batch align CA--N to positive x axis
     # v = n - ca
-    x = np.repeat(np.array([[1, 0, 0]])[None], r, 0)
+    x = cp.repeat(cp.array([[1, 0, 0]])[None], r, 0)
     axis = get_unit_normal(v, x)
     theta = get_angle(v, x)
     return return_align_f(axis, theta), return_batch_align_f(axis, theta, n=n)
@@ -94,7 +94,7 @@ def get_batch_N_CA_align(v, r, n):
 def get_batch_N_CA_align_back(v, r, n):  #huyue
     # assuming ca is at (0,0,0), return fn to batch align CA--N to positive x axis
     # v = n - ca
-    x = np.repeat(np.array([[1, 0, 0]])[None], r, 0)
+    x = cp.repeat(cp.array([[1, 0, 0]])[None], r, 0)
     axis = get_unit_normal(x,v)
     theta = get_angle(x,v)
     return return_align_f(axis, theta), return_batch_align_f(axis, theta, n=n)
@@ -104,14 +104,14 @@ def batch_canonicalize_coords(atom_coords, atom_data, residue_bb_index_list, res
     """Function to get batch canonicalize atoms about all residues in a structure and mask out residue of interest.
     
     Args:
-        atom_coords (np.array): num_atoms x 3 coordinates of all retained atoms in structure 
-        atom_data (np.array): num_atoms x 4 data for atoms  -- [residue idx, BB ind, atom type, res type] 
-        residue_bb_index_list (np.array): num_res x 4 mapping from residue idx to atom indices for backbone atoms (N, CA, C, CB) used for canonicalization
-        res_idx (np.array): num_output_res x 1 -- residue indices for subsampling residues ahead of canonicalization   
+        atom_coords (cp.array): num_atoms x 3 coordinates of all retained atoms in structure 
+        atom_data (cp.array): num_atoms x 4 data for atoms  -- [residue idx, BB ind, atom type, res type] 
+        residue_bb_index_list (cp.array): num_res x 4 mapping from residue idx to atom indices for backbone atoms (N, CA, C, CB) used for canonicalization
+        res_idx (cp.array): num_output_res x 1 -- residue indices for subsampling residues ahead of canonicalization   
         num_return (int): number of atoms to preserve about residue in environment
     Returns:
-        x_coords (np.array): num_output_res x num_return x 1 x 3 -- canonicalized coordinates about each residue with center residue masked
-        x_data (np.array): num_output_res x num_return x 1 x 4 -- metadata for canonicalized atoms for each environment
+        x_coords (cp.array): num_output_res x num_return x 1 x 3 -- canonicalized coordinates about each residue with center residue masked
+        x_data (cp.array): num_output_res x num_return x 1 x 4 -- metadata for canonicalized atoms for each environment
     """
 
     n_atoms = atom_coords.shape[0]
@@ -132,8 +132,8 @@ def batch_canonicalize_coords(atom_coords, atom_data, residue_bb_index_list, res
     x_idxN, x_idxC, x_idxCA, x_idxCB = x[idx_N] - center, x[idx_C] - center, x[idx_CA] - center, x[idx_CB] - center
     x_data = atom_data.copy()
 
-    x = np.repeat(x[None], n_res, axis=0)
-    x_data = np.repeat(x_data[None], n_res, axis=0)
+    x = cp.repeat(x[None], n_res, axis=0)
+    x_data = cp.repeat(x_data[None], n_res, axis=0)
 
     # center coordinates at CA position
     x = x - center[:, None]
@@ -143,9 +143,9 @@ def batch_canonicalize_coords(atom_coords, atom_data, residue_bb_index_list, res
     x_data_dim = x_data.shape[-1]
 
     if res_idx is None:
-        res_idx = np.arange(n_res)
+        res_idx = cp.arange(n_res)
 
-    res_idx = np.tile(res_idx[:, None], (1, n_atoms)).reshape(-1)
+    res_idx = cp.tile(res_idx[:, None], (1, n_atoms)).reshape(-1)
     x = x.reshape(-1, x_dim)
     x_data = x_data.reshape(-1, x_data_dim)
     # get res_idx, indicator of bb atom
@@ -154,28 +154,28 @@ def batch_canonicalize_coords(atom_coords, atom_data, residue_bb_index_list, res
 
     if not bb_only:
         # exclude atoms on residue of interest that are not BB atoms
-        exclude_idx = np.where((x_res == res_idx) & (x_bb != 1))[0]
+        exclude_idx = cp.where((x_res == res_idx) & (x_bb != 1))[0]
     else:
         # exclude all side-chain atoms (bb only)
-        exclude_idx = np.where((x_bb != 1))[0]
+        exclude_idx = cp.where((x_bb != 1))[0]
 
     # mask res type for all current residue atoms (no cheating!)
-    res_type_exclude_idx = np.where((x_res == res_idx))[0]
+    res_type_exclude_idx = cp.where((x_res == res_idx))[0]
     x_res_type[res_type_exclude_idx] = 21  # set to idx higher than highest --
 
     # move coordinates for non-include residues well out of frame of reference -- will be omitted in next step or voxelize
-    x[exclude_idx] = x[exclude_idx] + np.array([-1000.0, -1000.0, -1000.0])
+    x[exclude_idx] = x[exclude_idx] + cp.array([-1000.0, -1000.0, -1000.0])
     x = x.reshape(bs, n_atoms, x_dim)[:, :, None]
 
     x_data = x_data.reshape(bs, n_atoms, x_data_dim)[:, :, None]
 
     # select num_return nearest atoms to env center
-    d_x_out = np.sqrt(np.sum(x ** 2, -1))
-    idx = np.argpartition(d_x_out, kth=num_return, axis=1)
+    d_x_out = cp.sqrt(cp.sum(x ** 2, -1))
+    idx = cp.argpartition(d_x_out, kth=num_return, axis=1)
     idx = idx[:, :num_return]
 
-    x = np.take_along_axis(x, idx[..., None], axis=1)
-    x_data = np.take_along_axis(x_data, idx[..., None], axis=1)
+    x = cp.take_along_axis(x, idx[..., None], axis=1)
+    x_data = cp.take_along_axis(x_data, idx[..., None], axis=1)
 
     n = num_return
 
@@ -229,7 +229,7 @@ def batch_canonicalize_coords(atom_coords, atom_data, residue_bb_index_list, res
     x = f_bR(x)
     vector_z_normal_back=normal
     # recenter at CB
-    fixed_CB = np.ones((x_idxCB.shape[0], 1, 3)) * gly_CB_mu
+    fixed_CB = cp.ones((x_idxCB.shape[0], 1, 3)) * gly_CB_mu
     x = x - fixed_CB[:, None]
 
     #return x, x_data,vector_x_back,vector_z_normal_back,n_res,n

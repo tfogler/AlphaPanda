@@ -2,7 +2,7 @@ import torch
 
 from ._base import _mask_select_data, register_transform
 from ..protein import constants
-
+import pdb
 
 @register_transform('patch_around_anchor')
 class PatchAroundAnchor(object):

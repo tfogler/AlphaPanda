@@ -1,4 +1,5 @@
 import torch
+import pdb
 
 from ..protein import constants
 from ._base import register_transform
@@ -19,11 +20,11 @@ class MergeChains(object):
         for data in data_list:
             data['chain_nb'] = torch.LongTensor([
                 chains[c] for c in data['chain_id']
-            ])
+            ]).to('cuda')
 
     def _data_attr(self, data, name):
         if name in ('generate_flag', 'anchor_flag') and name not in data:
-            return torch.zeros(data['aa'].shape, dtype=torch.bool)
+            return torch.zeros(data['aa'].shape, dtype=torch.bool).to('cuda')
         else:
             return data[name]
 
@@ -33,24 +34,24 @@ class MergeChains(object):
             structure['heavy']['fragment_type'] = torch.full_like(
                 structure['heavy']['aa'],
                 fill_value = constants.Fragment.Heavy,
-            )
+            ).to('cuda')
             data_list.append(structure['heavy'])
 
         if structure['light'] is not None:
             structure['light']['fragment_type'] = torch.full_like(
                 structure['light']['aa'],
                 fill_value = constants.Fragment.Light,
-            )
+            ).to('cuda')
             data_list.append(structure['light'])
 
         if structure['antigen'] is not None:
             structure['antigen']['fragment_type'] = torch.full_like(
                 structure['antigen']['aa'],
                 fill_value = constants.Fragment.Antigen,
-            )
+            ).to('cuda')
             structure['antigen']['cdr_flag'] = torch.zeros_like(
                 structure['antigen']['aa'],
-            )
+            ).to('cuda')
             data_list.append(structure['antigen'])
 
         self.assign_chain_number_(data_list)

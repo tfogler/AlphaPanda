@@ -3,6 +3,11 @@ from Bio.PDB import Selection
 from Bio.PDB.Residue import Residue
 from easydict import EasyDict
 
+torch.set_default_device('cuda')
+
+import pdb
+import os
+
 from .constants import (
     AA, max_num_heavyatoms,
     restype_to_heavyatom_names, 
@@ -14,14 +19,17 @@ class ParsingException(Exception):
     pass
 
 
-def _get_residue_heavyatom_info(res: Residue):
-    pos_heavyatom = torch.zeros([max_num_heavyatoms, 3], dtype=torch.float)
-    mask_heavyatom = torch.zeros([max_num_heavyatoms, ], dtype=torch.bool)
+def _get_residue_heavyatom_info(res: Residue, device='cuda'):
+    pos_heavyatom = torch.zeros([max_num_heavyatoms, 3], dtype=torch.float).to(device)
+    mask_heavyatom = torch.zeros([max_num_heavyatoms, ], dtype=torch.bool).to(device)
+    # print(f"In parsers.py:23, mask_heavyatom device: {mask_heavyatom.device}")
+    # pdb.set_trace()
+    
     restype = AA(res.get_resname())
     for idx, atom_name in enumerate(restype_to_heavyatom_names[restype]):
         if atom_name == '': continue
         if atom_name in res:
-            pos_heavyatom[idx] = torch.tensor(res[atom_name].get_coord().tolist(), dtype=pos_heavyatom.dtype)
+            pos_heavyatom[idx] = torch.tensor(res[atom_name].get_coord().tolist(), dtype=pos_heavyatom.dtype).to(device)
             mask_heavyatom[idx] = True
     return pos_heavyatom, mask_heavyatom
 
@@ -104,6 +112,7 @@ def parse_biopython_structure(entity, unknown_threshold=1.0, max_resseq=None):
         seq_map[(chain_id, resseq, icode)] = i
 
     for key, convert_fn in tensor_types.items():
-        data[key] = convert_fn(data[key])
+        data[key] = convert_fn(data[key]).to('cuda')
+        # print(f"After: Data {key} device: {data[key].device}")
 
     return data, seq_map

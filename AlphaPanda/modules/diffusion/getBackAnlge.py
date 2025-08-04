@@ -3,7 +3,7 @@ from torch import tensor
 import copy
 import glob
 import pickle
-
+torch.set_default_device('cuda')
 
 gly_CB_mu = torch.tensor([-0.5311191 , -0.75842446,  1.2198311 ]) #pickle.load(open("pkl/CB_mu.pkl", "rb"))
 
@@ -11,13 +11,15 @@ gly_CB_mu = torch.tensor([-0.5311191 , -0.75842446,  1.2198311 ]) #pickle.load(o
 def get_len(v):
     #return tensor.sqrt(tensor.sum(v ** 2, -1))
     #return tensor.sum(v ** 2, -1).sqrt() #huyue
-    v=v.type(torch.DoubleTensor)
-    return v.norm(2,-1).type(torch.FloatTensor) #huyue
+    # v=v.type(torch.DoubleTensor)
+    # return v.norm(2,-1).type(torch.FloatTensor) #huyue
+    v=v.to(torch.float64)
+    return v.norm(2,-2).to(torch.float32)
 
 
 def get_unit_normal(ab, bc):
-    ab=ab.type(torch.FloatTensor)
-    bc=bc.type(torch.FloatTensor)
+    ab=ab.to(torch.float32)
+    bc=bc.to(torch.float32)
     n = torch.cross(ab, bc, -1)
     length = get_len(n)
     if len(n.shape) > 2:
@@ -35,12 +37,12 @@ def get_unit_normal(ab, bc):
 def get_angle(v1, v2):
     # get in plane angle between v1, v2 -- cos^-1(v1.v2 / ||v1|| ||v2||)
     #return tensor.arccos(tensor.sum(v1 * v2, -1) / get_len(v1) * get_len(v2)) # if add kuohao ??????? huyue
-    length1=get_len(v1.type(torch.DoubleTensor))
-    length2=get_len(v2.type(torch.DoubleTensor))
+    length1=get_len(v1.to(torch.float64))
+    length2=get_len(v2.to(torch.float64))
     length1=torch.where(length1!=0,length1,1)
     length2=torch.where(length2!=0,length2,1)
 
-    return torch.arccos(torch.clip(torch.sum(v1 * v2, -1) / (length1 * length2),-1,1).type(torch.DoubleTensor)).type(torch.FloatTensor)
+    return torch.arccos(torch.clip(torch.sum(v1 * v2, -1) / (length1 * length2),-1,1).to(torch.float64)).to(torch.float32)
 
     #if get_len(v1).all()!=0 and get_len(v2).all()!=0:
     #    return torch.arccos(torch.clip(torch.sum(v1 * v2, -1) / get_len(v1.type(torch.DoubleTensor)) * get_len(v2.type(torch.DoubleTensor)),-1,1).type(torch.DoubleTensor)).type(torch.FloatTensor)
@@ -51,9 +53,9 @@ def get_angle(v1, v2):
 
 
 def bdot(a, b):
-    a=a.type(torch.DoubleTensor)
-    b=b.type(torch.DoubleTensor)
-    return torch.matmul(a, b).type(torch.FloatTensor)
+    a=a.to(torch.float64)
+    b=b.to(torch.float64)
+    return torch.matmul(a, b).to(torch.float32)
 
 
 def return_align_f(axis, theta):
@@ -63,9 +65,9 @@ def return_align_f(axis, theta):
     #print(c_theta.shape)
     #print("f_rot shape\n")
     #f_rot = lambda v: c_theta * v + s_theta * tensor.cross(axis, v, axis=-1) + (1 - c_theta) * bdot(axis, v.transpose(0, 2, 1)) * axis
-    ab=axis.type(torch.FloatTensor)
-    #bc=v.type(torch.FloatTensor)
-    f_rot = lambda v: c_theta * v + s_theta * torch.cross(ab, torch.FloatTensor(v),-1) + (1 - c_theta) * bdot(axis, v.transpose( 2, 1)) * axis
+    ab=axis.to(torch.float32)
+    #bc=v.to(torch.float32)
+    f_rot = lambda v: c_theta * v + s_theta * torch.cross(ab, (v.to(torch.float32)),-1) + (1 - c_theta) * bdot(axis, v.transpose( 2, 1)) * axis
     
     return f_rot
 

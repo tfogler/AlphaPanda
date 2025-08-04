@@ -1,7 +1,7 @@
 import copy
 import torch
 from torchvision.transforms import Compose
-
+import pdb
 
 _TRANSFORM_DICT = {}
 #huyue
@@ -52,6 +52,7 @@ def _index_select_data(data, index):
 
 def _mask_select(v, mask):
     if isinstance(v, torch.Tensor) and v.size(0) == mask.size(0):
+        assert isinstance(v, torch.Tensor) # and 'cuda' in str(v.device), f"AssertionError, device {v} not on cuda"
         if v.dim() == 3 and v.size(1) == mask.size(0) and v.size(2) == 660 : # only attentions
             return v[:,mask][mask]
         else:

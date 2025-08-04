@@ -26,8 +26,8 @@ from AlphaPanda.modules.common.geometry import reconstruct_backbone_partially
 #from AlphaPanda.modules.common.so3 import so3vec_to_rotation
 from AlphaPanda.modules.common.geometry import reconstruct_backbone
 from AlphaPanda.utils.protein.constants import BBHeavyAtom
-#huyue 0519
-#torch.set_printoptions(profile="full")
+import pdb #0825
+import cupy as cp
 
 def rotation_matrix_cosine_loss(R_pred, R_true):
     """
@@ -404,8 +404,8 @@ class EpsilonNet(nn.Module):
         #x_coord=x_coord.reshape(1,batchS*residueS*atomS,3)
         #x_data=x_data.reshape(1,batchS*residueS*atomS,4)
         #x_data=x_data.reshape(3)
-        x_coord=x_coord.numpy()
-        x_data=x_data.numpy()
+        x_coord = cp.from_dlpack(x_coord)
+        x_data = cp.from_dlpack(x_data)
         #print("x_coord before \n")
         #print(x_coord)
         #print("\n")
@@ -436,7 +436,8 @@ class EpsilonNet(nn.Module):
         #print("residue_bb_index size\n")
         #print(residue_bb_index.size())
         #print("\n")
-        residue_bb_index=residue_bb_index.numpy()
+        # residue_bb_index=residue_bb_index.numpy()
+        residue_bb_index = cp.from_dlpack(residue_bb_index)
         #x_coord,x_data=canonicalize.batch_canonicalize_coords(x_coord,x_data,residue_bb_index)
         idx_CB=  residue_bb_index[:, 3]
         idx_CA=  residue_bb_index[:, 1]
@@ -476,8 +477,10 @@ class EpsilonNet(nn.Module):
         #Cback_x,Cback_Bx=canonicalize.get_batch_N_CA_align_back(vector_x_back,r=can_res_num,n=can_atom_num)
         #back_z,back_Bz=get_batch_N_CA_C_align_back(vector_z_normal_back,r=can_res_num,n=can_atom_num)
         #back_x,back_Bx=get_batch_N_CA_align_back(vector_x_back,r=can_res_num,n=can_atom_num)
-        back_z,back_Bz=get_batch_N_CA_C_align_back(torch.as_tensor(vector_z_normal_back),r=can_res_num,n=can_atom_num)
-        back_x,back_Bx=get_batch_N_CA_align_back(torch.as_tensor(vector_x_back),r=can_res_num,n=can_atom_num)
+        # back_z,back_Bz=get_batch_N_CA_C_align_back(torch.as_tensor(vector_z_normal_back),r=can_res_num,n=can_atom_num)
+        # back_x,back_Bx=get_batch_N_CA_align_back(torch.as_tensor(vector_x_back),r=can_res_num,n=can_atom_num)
+        back_z,back_Bz=get_batch_N_CA_C_align_back(torch.from_dlpack(vector_z_normal_back),r=can_res_num,n=can_atom_num)
+        back_x,back_Bx=get_batch_N_CA_align_back(torch.from_dlpack(vector_x_back),r=can_res_num,n=can_atom_num)
         #idx_CB=  residue_bb_index[:, 3]
         #voxeOut=voxelize(x_coord,x_data,bb_only=1)
         #print("x_coord back \n")
@@ -726,6 +729,7 @@ class EpsilonNet(nn.Module):
         #print('rotation apply crd\n')
         #print(test_eps_crd)
         #print('\n')
+        pdb.set_trace()
         eps_crd = back_x(back_z(eps_crd.reshape(L,1,3)).reshape(L,1,3)) #huyue
 
         eps_crd=eps_crd.reshape(N,L,3)
@@ -852,9 +856,9 @@ class FullDPM(nn.Module):
         self.register_buffer('position_scale', torch.FloatTensor(position_scale).view(1, 1, -1))
         self.register_buffer('_dummy', torch.empty([0, ]))
         
-        for name, param in self.named_parameters():
-            print("{name} device: {device}".format(name=name, device=param.device))
-        print("{name} device: {device}".format(name="self.eps_net", device=print(next(self.parameters()).device)))
+        # for name, param in self.named_parameters():
+        #     print("{name} device: {device}".format(name=name, device=param.device))
+        # print("{name} device: {device}".format(name="self.eps_net", device=print(next(self.parameters()).device)))
         
 
     def _normalize_position(self, p):

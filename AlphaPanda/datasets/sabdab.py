@@ -13,6 +13,9 @@ from Bio.PDB import PDBExceptions
 from Bio.PDB import Polypeptide
 from torch.utils.data import Dataset
 from tqdm.auto import tqdm
+torch.set_default_device('cuda')
+
+import pdb
 
 from ..utils.protein import parsers, constants
 from ._base import register_dataset
@@ -79,7 +82,7 @@ def _label_heavy_chain_cdr(data, seq_map, max_cdr3_length=30):
         return data, seq_map
 
     # Add CDR labels
-    cdr_flag = torch.zeros_like(data['aa'])
+    cdr_flag = torch.zeros_like(data['aa']).to('cuda')
     for position, idx in seq_map.items():
         resseq = position[1]
         cdr_type = constants.ChothiaCDRRange.to_cdr('H', resseq)
@@ -110,7 +113,7 @@ def _label_heavy_chain_cdr(data, seq_map, max_cdr3_length=30):
 def _label_light_chain_cdr(data, seq_map, max_cdr3_length=30):
     if data is None or seq_map is None:
         return data, seq_map
-    cdr_flag = torch.zeros_like(data['aa'])
+    cdr_flag = torch.zeros_like(data['aa']).to('cuda')
     for position, idx in seq_map.items():
         resseq = position[1]
         cdr_type = constants.ChothiaCDRRange.to_cdr('L', resseq)
@@ -239,6 +242,7 @@ class SAbDabDataset(Dataset):
         self._load_split(split, split_seed)
 
         self.transform = transform
+        print(f"{self.transform = }")
 
     def _load_sabdab_entries(self):
         df = pd.read_csv(self.summary_path, sep='\t')
@@ -435,6 +439,7 @@ class SAbDabDataset(Dataset):
 
     def get_structure(self, id):
         self._connect_db()
+        # pdb.set_trace()
         with self.db_conn.begin() as txn:
             return pickle.loads(txn.get(id.encode()))
 

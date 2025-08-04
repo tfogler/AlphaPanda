@@ -1,9 +1,9 @@
 name: alphapanda-2
 channels:
   - pytorch
-  - bioconda
-  - conda-forge
   - nvidia
+  - conda-forge
+  - bioconda
 dependencies:
   - _libgcc_mutex
   - _openmp_mutex
@@ -31,6 +31,8 @@ dependencies:
   - colorama
   - cryptography
   - cudatoolkit
+  - cuda-version
+  - cupy
   - easydict
   - einops
   - ffmpeg
@@ -112,8 +114,8 @@ dependencies:
   - python-dateutil
   - python-lmdb
   - python_abi
-  - pytorch==2.5.1
-  - pytorch-cuda==12.4
+  - pytorch
+  - pytorch-cuda
   - pytorch-mutex
   - pytz
   - pyu2f
@@ -130,7 +132,7 @@ dependencies:
   - tensorboard-data-server
   - tensorboard-plugin-wit
   - tk
-  - torchvision==0.20.1
+  - torchvision
   - tqdm
   - typing-extensions
   - typing_extensions
