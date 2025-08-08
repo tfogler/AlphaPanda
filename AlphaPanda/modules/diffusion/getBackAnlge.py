@@ -14,7 +14,7 @@ def get_len(v):
     # v=v.type(torch.DoubleTensor)
     # return v.norm(2,-1).type(torch.FloatTensor) #huyue
     v=v.to(torch.float64)
-    return v.norm(2,-2).to(torch.float32)
+    return torch.linalg.norm(v).to(torch.float32)
 
 
 def get_unit_normal(ab, bc):

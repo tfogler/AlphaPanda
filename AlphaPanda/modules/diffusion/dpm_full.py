@@ -445,6 +445,7 @@ class EpsilonNet(nn.Module):
         #print("x_coord 1/4 CB\n")
         #print(x_coord[idx_CB])
         #print("\n")
+        # pdb.set_trace()
         x_coord,x_data,center_coord, fixed_CB_coord,x_idxN_coord, x_idxC_coord, x_idxCA_coord,x_CB_coord,vector_x_back,vector_z_normal_back,can_res_num,can_atom_num=canonicalize.batch_canonicalize_coords(x_coord,x_data,residue_bb_index) #huyue 0823
         #print("center coord \n")
         #print(center_coord)
@@ -729,7 +730,7 @@ class EpsilonNet(nn.Module):
         #print('rotation apply crd\n')
         #print(test_eps_crd)
         #print('\n')
-        pdb.set_trace()
+        # pdb.set_trace()
         eps_crd = back_x(back_z(eps_crd.reshape(L,1,3)).reshape(L,1,3)) #huyue
 
         eps_crd=eps_crd.reshape(N,L,3)

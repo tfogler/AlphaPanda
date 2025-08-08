@@ -8,7 +8,7 @@ gly_CB_mu = cp.array([-0.5311191 , -0.75842446,  1.2198311 ]) #pickle.load(open(
 
 
 def get_len(v):
-    return cp.sqrt(cp.sum(v ** 2, -1))
+    return cp.linalg.norm(v)
 
 
 def get_unit_normal(ab, bc):
@@ -28,18 +28,12 @@ def get_unit_normal(ab, bc):
 
 def get_angle(v1, v2):
     # get in plane angle between v1, v2 -- cos^-1(v1.v2 / ||v1|| ||v2||)
-    #return cp.arccos(cp.sum(v1 * v2, -1) / get_len(v1) * get_len(v2))
     length1=get_len(v1)
     length2=get_len(v2)
     length1=cp.where(length1!=0,length1,1)
     length2=cp.where(length2!=0,length2,1)
-    #return cp.arccos(cp.clip(cp.sum(v1 * v2, -1) / length1 * length2,-1,1)) # bug ?????
-    return cp.arccos(cp.clip(cp.sum(v1 * v2, -1) / (length1 * length2),-1,1))
-    #if get_len(v1).all()!=0 and get_len(v2).all()!=0:
-    #    return cp.arccos(cp.clip(cp.sum(v1 * v2, -1) / get_len(v1) * get_len(v2),-1,1))
-    #else:
-    #    return cp.arccos(cp.clip(cp.sum(v1 * v2, -1),-1,1))
-        #return cp.arccos(0) #huyue
+    dot_product = cp.sum(v1 * v2, axis=2) # element-wise multiplication and summation: dot-product
+    return cp.arccos(cp.clip(dot_product / (length1 * length2), -1.0, 1.0))
 
 
 
@@ -50,7 +44,14 @@ def bdot(a, b):
 def return_align_f(axis, theta):
     c_theta = cp.cos(theta)[..., None]
     s_theta = cp.sin(theta)[..., None]
-    f_rot = lambda v: c_theta * v + s_theta * cp.cross(axis, v, axis=-1) + (1 - c_theta) * bdot(axis, v.transpose(0, 2, 1)) * axis
+    # f_rot = lambda v: c_theta * v + s_theta * cp.cross(axis, v, axis=-1) + (1 - c_theta) * bdot(axis, v.transpose(0, 2, 1)) * axis
+    def f_rot(v):
+        vc_theta = v * c_theta
+        v_cross_s_theta = cp.cross(axis, v, axis=-1) * s_theta
+        v_transpose = v.transpose(0,2,1)
+        v_bdot_axis = cp.matmul(axis, v_transpose)
+        v_bdot_axis_term = (1 - c_theta) * v_bdot_axis * axis
+        return vc_theta + v_cross_s_theta + v_bdot_axis_term
     return f_rot
 
 
@@ -61,7 +62,7 @@ def return_batch_align_f(axis, theta, n):
     axis = cp.repeat(axis, n, axis=1)[:, :, None]
     c_theta = cp.repeat(c_theta, n, axis=1)[:, :, None, None]
     s_theta = cp.repeat(s_theta, n, axis=1)[:, :, None, None]
-
+    
     f_rot = lambda v: c_theta * v + s_theta * cp.cross(axis, v, axis=-1) + (1 - c_theta) * bdot(axis, v.transpose(0, 1, 3, 2)) * axis
     return f_rot
 

@@ -200,7 +200,11 @@ if __name__ == '__main__':
 
     try:
         for it in range(it_first, config.train.max_iters + 1):
+            start_time = time.perf_counter()
+            
             train(it)
+
+            
             if it % config.train.val_freq == 0:
                 avg_val_loss = validate(it)
                 if not args.debug:
@@ -213,5 +217,12 @@ if __name__ == '__main__':
                         'iteration': it,
                         'avg_val_loss': avg_val_loss,
                     }, ckpt_path)
+
+
+            end_time = time.perf_counter()
+            elapsed_ms = (end_time - start_time) * 1e3  # convert to ms
+            
+            print(f"Elapsed Time: {elapsed_ms:.2f} ms")
+            
     except KeyboardInterrupt:
         logger.info('Terminating...')
