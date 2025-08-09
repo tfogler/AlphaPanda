@@ -20,7 +20,7 @@ from AlphaPanda.utils.train import *
 #huyue
 #import esm
 #from esm import Alphabet
-cpu_num=5
+cpu_num=32
 torch.set_num_threads(cpu_num)
 from AlphaPanda.datasets.sabdab import AA_tensor_to_sequence
 from AlphaPanda.utils.utils_trx import *
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     if args.resume is not None or args.finetune is not None:
         ckpt_path = args.resume if args.resume is not None else args.finetune
         logger.info('Resuming from checkpoint: %s' % ckpt_path)
-        ckpt = torch.load(ckpt_path, map_location=args.device)
+        ckpt = torch.load(ckpt_path, map_location=args.device, weights_only=False)
         it_first = ckpt['iteration']  # + 1
         model.load_state_dict(ckpt['model'])
         logger.info('Resuming optimizer states...')
