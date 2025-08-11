@@ -17,6 +17,8 @@ from AlphaPanda.utils.data import *
 from AlphaPanda.utils.train import *
 
 import pdb
+import numpy as np
+import subprocess as ps
 
 #huyue
 #import esm
@@ -172,9 +174,14 @@ if __name__ == '__main__':
 
     # Validate
     def validate(it):
+        start_time = time.perf_counter()
         loss_tape = ValidationLossTape()
         with torch.no_grad():
             model.eval()
+            gpu_memory = np.round(torch.cuda.memory_allocated() / 2**20).astype(int)
+            max_gpu_memory = np.round(torch.cuda.memory_allocated() / 2**20).astype(int)
+            print(f"CUDA memory allocated: {gpu_memory} MB")
+            print(f"CUDA Max memory allocated: {max_gpu_memory} MB")
             for i, batch in enumerate(tqdm(val_loader, desc='Validate', dynamic_ncols=True)):
                 # Prepare data
                 batch = recursive_to(batch, args.device)
@@ -196,15 +203,22 @@ if __name__ == '__main__':
             scheduler.step(avg_loss)
         else:
             scheduler.step()
+        end_time = time.perf_counter()
+        elapsed_ms = (end_time - start_time) * 1e3 # convert to ms
+        print(f"Val Elapsed Time: {elapsed_ms:.2f} ms")
+        
         return avg_loss
 
     try:
         for it in range(it_first, config.train.max_iters + 1):
             start_time = time.perf_counter()
-            
+            gpu_memory = np.round(torch.cuda.memory_allocated() / 2**20).astype(int)
+            max_gpu_memory = np.round(torch.cuda.memory_allocated() / 2**20).astype(int)
+            print(f"CUDA memory allocated: {gpu_memory} MB")
+            print(f"CUDA Max memory allocated: {max_gpu_memory} MB")
             train(it)
 
-            
+            # save checkpoint every 25 or val_freq iterations
             if it % config.train.val_freq == 0:
                 avg_val_loss = validate(it)
                 if not args.debug:
@@ -217,6 +231,21 @@ if __name__ == '__main__':
                         'iteration': it,
                         'avg_val_loss': avg_val_loss,
                     }, ckpt_path)
+            
+            # remove old iterations checkpoints
+            if it % 1000 == 0 and it > 5000:
+                ckpt_exn = os.path.join(ckpt_dir, r'{%d..%d..%d}.pt' % (it-6000+config.train.val_freq, it-5000, config.train.val_freq))
+                cmd = 'rm %s' % ckpt_exn
+                bash = ['bash', '-c', cmd]
+                try:
+                    run = ps.run(bash, capture_output=True, check=True, shell=False, timeout=5)
+                    stdout, stderr = run.stdout, run.stderr
+                    print(run.stdout)
+                    print('Cleaned checkpoints %d thru %d' % (it-6000+config.train.val_freq, it-5000))
+                except ps.CalledProcessError as e:
+                    print(f'Rm files failed with error: {e}')
+                except ps.TimeoutExpired as e:
+                    pass
 
 
             end_time = time.perf_counter()

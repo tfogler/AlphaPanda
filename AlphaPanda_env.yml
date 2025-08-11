@@ -116,6 +116,7 @@ dependencies:
   - python_abi
   - pytorch
   - pytorch-cuda
+  - pytorch-ignite
   - pytorch-mutex
   - pytz
   - pyu2f
