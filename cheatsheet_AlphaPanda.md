@@ -71,3 +71,8 @@ Training random states used
 8092025
 314159
 23452134
+
+Weights correction
+rot: 0.9
+prop: 1.9
+seq: 0.2

@@ -106,7 +106,7 @@ if __name__ == '__main__':
     if args.resume is not None or args.finetune is not None:
         ckpt_path = args.resume if args.resume is not None else args.finetune
         logger.info('Resuming from checkpoint: %s' % ckpt_path)
-        ckpt = torch.load(ckpt_path, map_location=args.device)
+        ckpt = torch.load(ckpt_path, map_location=args.device, weights_only=False)
         it_first = ckpt['iteration']  # + 1
         model.load_state_dict(ckpt['model'])
         logger.info('Resuming optimizer states...')
@@ -146,6 +146,7 @@ if __name__ == '__main__':
         time_forward_end = current_milli_time()
 
         # Backward
+        # pdb.set_trace()
         loss.backward()
         orig_grad_norm = clip_grad_norm_(model.parameters(), config.train.max_grad_norm)
         optimizer.step()

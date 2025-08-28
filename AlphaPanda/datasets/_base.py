@@ -14,7 +14,7 @@ def register_dataset(name):
 
 def get_dataset(cfg):
     transform = get_transform(cfg.transform) if 'transform' in cfg else None
-    return _DATASET_DICT[cfg.type](cfg, transform=transform)
+    return _DATASET_DICT[cfg.type](cfg, transform=transform) 
 
 
 @register_dataset('concat')

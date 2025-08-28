@@ -13,6 +13,11 @@ def get_optimizer(cfg, model):
             weight_decay=cfg.weight_decay,
             betas=(cfg.beta1, cfg.beta2, )
         )
+    elif cfg.type.upper() == 'SGD':
+        return torch.optim.SGD(
+            model.parameters(),
+            lr=cfg.lr
+        )
     else:
         raise NotImplementedError('Optimizer not supported: %s' % cfg.type)
 
