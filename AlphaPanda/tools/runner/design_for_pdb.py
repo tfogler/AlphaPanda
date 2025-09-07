@@ -159,7 +159,7 @@ def design_for_pdb(args):
 
     # Load checkpoint and model
     logger.info('Loading model config and checkpoints: %s' % (config.model.checkpoint))
-    ckpt = torch.load(config.model.checkpoint, map_location='cpu')
+    ckpt = torch.load(config.model.checkpoint, map_location='cuda', weights_only=False)
     cfg_ckpt = ckpt['config']
     model = get_model(cfg_ckpt.model, args.device)
     lsd = model.load_state_dict(ckpt['model'])
@@ -247,9 +247,9 @@ def design_for_pdb(args):
                 mask_atoms = batch['mask_heavyatom'],
                 mask_recons = batch['generate_flag'],
             )
-            aa_new = aa_new.cpu()
-            pos_atom_new = pos_atom_new.cpu()
-            mask_atom_new = mask_atom_new.cpu()
+            # aa_new = aa_new.cpu()
+            # pos_atom_new = pos_atom_new.cpu()
+            # mask_atom_new = mask_atom_new.cpu()
 
             for i in range(aa_new.size(0)):
                 data_tmpl = variant['data']
@@ -258,7 +258,7 @@ def design_for_pdb(args):
                 pos_ha  = (
                     apply_patch_to_tensor(
                         data_tmpl['pos_heavyatom'], 
-                        pos_atom_new[i] + batch['origin'][i].view(1, 1, 3).cpu(), 
+                        pos_atom_new[i] + batch['origin'][i].view(1, 1, 3), 
                         data_cropped['patch_idx']
                     )
                 )
