@@ -21,7 +21,7 @@ from AlphaPanda.utils.train import *
 #huyue
 #import esm
 #from esm import Alphabet
-cpu_num=5
+cpu_num=32
 torch.set_num_threads(cpu_num)
 from AlphaPanda.datasets.sabdab import AA_tensor_to_sequence
 from AlphaPanda.utils.utils_trx import *
