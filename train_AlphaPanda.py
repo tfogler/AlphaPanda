@@ -146,7 +146,7 @@ if __name__ == '__main__':
         time_forward_end = current_milli_time()
 
         # Backward
-        # pdb.set_trace()
+        pdb.set_trace()
         loss.backward()
         orig_grad_norm = clip_grad_norm_(model.parameters(), config.train.max_grad_norm)
         optimizer.step()

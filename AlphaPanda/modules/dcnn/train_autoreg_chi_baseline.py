@@ -112,7 +112,7 @@ def step(model, out, criterion, chi_1_criterion, chi_2_criterion, chi_3_criterio
     if X is None:
         return None
 
-    X, y = X.float(), y.long()
+    X, y = X.to(torch.float64), y.long()
     chi_angles = chi_angles.long()
 
     chi_1 = chi_angles[:, 0]
@@ -272,7 +272,7 @@ def main():
             output_atom[bs_idx, x_atom, x_b, y_b, z_b] = 1  # atom type
             X = output_atom[:, :c, 1:-1, 1:-1, 1:-1]
 
-            X, y = X.float(), y.long()
+            X, y = X.to(torch.float64), y.long()
             chi_angles = chi_angles.long()
 
             chi_1 = chi_angles[:, 0]

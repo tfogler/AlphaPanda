@@ -36,7 +36,7 @@ def log_metrics(run="sampler", args=None, log=None, iteration=0, design_sampler=
 
     # log rosetta score terms
     for s in design_sampler.score_terms:
-        log.log_scalar("{run}/z_{prefix}{s}".format(run=run, prefix=prefix, s=s), float(design_sampler.curr_score_terms[s].mean()))
+        log.log_scalar("{run}/z_{prefix}{s}".format(run=run, prefix=prefix, s=s), np.double(design_sampler.curr_score_terms[s].mean()))
 
     # log rosetta agnostic terms
     for n, s in design_sampler.filter_scores:

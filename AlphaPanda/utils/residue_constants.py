@@ -467,7 +467,7 @@ def load_stereo_chemical_props() -> Tuple[
         if resname not in residue_bonds:
             residue_bonds[resname] = []
         residue_bonds[resname].append(
-            Bond(atom1, atom2, float(length), float(stddev))
+            Bond(atom1, atom2, np.double(length), np.double(stddev))
         )
     residue_bonds["UNK"] = []
 
@@ -487,8 +487,8 @@ def load_stereo_chemical_props() -> Tuple[
                 atom1,
                 atom2,
                 atom3,
-                float(angle_degree) / 180.0 * np.pi,
-                float(stddev_degree) / 180.0 * np.pi,
+                np.double(angle_degree) / 180.0 * np.pi,
+                np.double(stddev_degree) / 180.0 * np.pi,
             )
         )
     residue_bond_angles["UNK"] = []
@@ -1122,12 +1122,12 @@ def _make_rigid_transformation_4x4(ex, ey, translation):
 # and compute affine transformation matrices (4,4) from one rigid group to the
 # previous group
 restype_atom37_to_rigid_group = np.zeros([21, 37], dtype=int)
-restype_atom37_mask = np.zeros([21, 37], dtype=np.float32)
-restype_atom37_rigid_group_positions = np.zeros([21, 37, 3], dtype=np.float32)
+restype_atom37_mask = np.zeros([21, 37], dtype=np.float64)
+restype_atom37_rigid_group_positions = np.zeros([21, 37, 3], dtype=np.float64)
 restype_atom14_to_rigid_group = np.zeros([21, 14], dtype=int)
-restype_atom14_mask = np.zeros([21, 14], dtype=np.float32)
-restype_atom14_rigid_group_positions = np.zeros([21, 14, 3], dtype=np.float32)
-restype_rigid_group_default_frame = np.zeros([21, 8, 4, 4], dtype=np.float32)
+restype_atom14_mask = np.zeros([21, 14], dtype=np.float64)
+restype_atom14_rigid_group_positions = np.zeros([21, 14, 3], dtype=np.float64)
+restype_rigid_group_default_frame = np.zeros([21, 8, 4, 4], dtype=np.float64)
 
 
 def _make_rigid_group_constants():
@@ -1219,9 +1219,9 @@ def make_atom14_dists_bounds(
     overlap_tolerance=1.5, bond_length_tolerance_factor=15
 ):
     """compute upper and lower bounds for bonds to assess violations."""
-    restype_atom14_bond_lower_bound = np.zeros([21, 14, 14], np.float32)
-    restype_atom14_bond_upper_bound = np.zeros([21, 14, 14], np.float32)
-    restype_atom14_bond_stddev = np.zeros([21, 14, 14], np.float32)
+    restype_atom14_bond_lower_bound = np.zeros([21, 14, 14], np.float64)
+    restype_atom14_bond_upper_bound = np.zeros([21, 14, 14], np.float64)
+    restype_atom14_bond_stddev = np.zeros([21, 14, 14], np.float64)
     residue_bonds, residue_virtual_bonds, _ = load_stereo_chemical_props()
     for restype, restype_letter in enumerate(restypes):
         resname = restype_1to3[restype_letter]
@@ -1278,7 +1278,7 @@ def make_atom14_dists_bounds(
     }
 
 
-restype_atom14_ambiguous_atoms = np.zeros((21, 14), dtype=np.float32)
+restype_atom14_ambiguous_atoms = np.zeros((21, 14), dtype=np.float64)
 restype_atom14_ambiguous_atoms_swap_idx = np.tile(
     np.arange(14, dtype=int), (21, 1)
 )

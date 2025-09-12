@@ -465,7 +465,7 @@ class FullDPM(nn.Module):
 
         # Rotation loss
         loss_rot = rotation_matrix_cosine_loss(R_pred, R_0) # (N, L)
-        loss_rot = (loss_rot * mask_generate).sum() / (mask_generate.sum().float() + 1e-8)
+        loss_rot = (loss_rot * mask_generate).sum() / (mask_generate.sum().to(torch.float64) + 1e-8)
         loss_dict['rot'] = loss_rot
         
         #debug huyue
@@ -483,7 +483,7 @@ class FullDPM(nn.Module):
 
         # Position loss
         loss_pos = F.mse_loss(eps_p_pred, eps_p, reduction='none').sum(dim=-1)  # (N, L)
-        loss_pos = (loss_pos * mask_generate).sum() / (mask_generate.sum().float() + 1e-8)
+        loss_pos = (loss_pos * mask_generate).sum() / (mask_generate.sum().to(torch.float64) + 1e-8)
         loss_dict['pos'] = loss_pos
         #debug huyue
         if not torch.isfinite(loss_pos):
@@ -505,7 +505,7 @@ class FullDPM(nn.Module):
             reduction='none',
             log_target=False
         ).sum(dim=-1)    # (N, L)
-        loss_seq = (kldiv * mask_generate).sum() / (mask_generate.sum().float() + 1e-8)
+        loss_seq = (kldiv * mask_generate).sum() / (mask_generate.sum().to(torch.float64) + 1e-8)
         loss_dict['seq'] = loss_seq
         #huyue change loss_dict
         #debug huyue

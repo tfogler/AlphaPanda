@@ -3,6 +3,7 @@ import random
 import logging
 import datetime
 import pandas as pd
+import numpy as np
 import joblib
 import pickle
 import lmdb
@@ -65,9 +66,9 @@ def parse_sabdab_resolution(val):
     if val == 'NOT' or not val or val != val:
         return None
     elif isinstance(val, str) and ',' in val:
-        return float(val.split(',')[0].strip())
+        return np.double(val.split(',')[0].strip())
     else:
-        return float(val)
+        return np.double(val)
 
 
 def _aa_tensor_to_sequence(aa):

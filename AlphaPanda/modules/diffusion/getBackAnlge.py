@@ -14,12 +14,15 @@ def get_len(v):
     # v=v.type(torch.DoubleTensor)
     # return v.norm(2,-1).type(torch.FloatTensor) #huyue
     v=v.to(torch.float64)
-    return torch.linalg.norm(v).to(torch.float32)
+    # return torch.linalg.norm(v).to(torch.float32)
+    return torch.linalg.norm(v)
 
 
 def get_unit_normal(ab, bc):
-    ab=ab.to(torch.float32)
-    bc=bc.to(torch.float32)
+    # ab=ab.to(torch.float32)
+    # bc=bc.to(torch.float32)
+    ab=ab.to(torch.float64)
+    bc=bc.to(torch.float64)
     n = torch.cross(ab, bc, -1)
     length = get_len(n)
     if len(n.shape) > 2:
@@ -42,7 +45,8 @@ def get_angle(v1, v2):
     length1=torch.where(length1!=0,length1,1)
     length2=torch.where(length2!=0,length2,1)
 
-    return torch.arccos(torch.clip(torch.sum(v1 * v2, -1) / (length1 * length2),-1,1).to(torch.float64)).to(torch.float32)
+    return torch.arccos(torch.clip(torch.sum(v1 * v2, -1) / (length1 * length2),-1,1).to(torch.float64))
+    # return torch.arccos(torch.clip(torch.sum(v1 * v2, -1) / (length1 * length2),-1,1).to(torch.float64)).to(torch.float32)
 
     #if get_len(v1).all()!=0 and get_len(v2).all()!=0:
     #    return torch.arccos(torch.clip(torch.sum(v1 * v2, -1) / get_len(v1.type(torch.DoubleTensor)) * get_len(v2.type(torch.DoubleTensor)),-1,1).type(torch.DoubleTensor)).type(torch.FloatTensor)
@@ -55,7 +59,8 @@ def get_angle(v1, v2):
 def bdot(a, b):
     a=a.to(torch.float64)
     b=b.to(torch.float64)
-    return torch.matmul(a, b).to(torch.float32)
+    return torch.matmul(a, b)
+    # return torch.matmul(a, b).to(torch.float32)
 
 
 def return_align_f(axis, theta):
@@ -65,9 +70,11 @@ def return_align_f(axis, theta):
     #print(c_theta.shape)
     #print("f_rot shape\n")
     #f_rot = lambda v: c_theta * v + s_theta * tensor.cross(axis, v, axis=-1) + (1 - c_theta) * bdot(axis, v.transpose(0, 2, 1)) * axis
-    ab=axis.to(torch.float32)
+    # ab=axis.to(torch.float32)
+    ab=axis
     #bc=v.to(torch.float32)
-    f_rot = lambda v: c_theta * v + s_theta * torch.cross(ab, (v.to(torch.float32)),-1) + (1 - c_theta) * bdot(axis, v.transpose( 2, 1)) * axis
+    # f_rot = lambda v: c_theta * v + s_theta * torch.cross(ab, (v.to(torch.float32)),-1) + (1 - c_theta) * bdot(axis, v.transpose( 2, 1)) * axis
+    f_rot = lambda v: c_theta * v + s_theta * torch.cross(ab, v,-1) + (1 - c_theta) * bdot(axis, v.transpose( 2, 1)) * axis
     
     return f_rot
 

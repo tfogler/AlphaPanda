@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+torch.set_default_dtype(torch.float64)
+
 from .geometry import quaternion_to_rotation_matrix
 
 

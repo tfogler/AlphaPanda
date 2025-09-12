@@ -131,7 +131,7 @@ class NpEncoder(json.JSONEncoder):
         if isinstance(obj, np.integer):
             return int(obj)
         elif isinstance(obj, np.floating):
-            return float(obj)
+            return np.double(obj)
         elif isinstance(obj, np.ndarray):
             return obj.tolist()
         else:

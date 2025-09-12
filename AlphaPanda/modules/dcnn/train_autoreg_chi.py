@@ -97,7 +97,7 @@ def step(model, out, criterion, chi_1_criterion, chi_2_criterion, chi_3_criterio
     output = torch.cat([output_atom[:, :c], output_bb[:, :1], output_res[:, :21]], 1)
     X = output[:, :, 1:-1, 1:-1, 1:-1]
 
-    X, y = X.float(), y.long()
+    X, y = X.to(torch.float64), y.long()
     chi_angles = chi_angles.long()
 
     chi_1 = chi_angles[:, 0]
@@ -248,7 +248,7 @@ def main():
 
             X = output[:, :, 1:-1, 1:-1, 1:-1]
 
-            X, y = X.float(), y.long()
+            X, y = X.to(torch.float64), y.long()
             chi_angles = chi_angles.long()
 
             chi_1 = chi_angles[:, 0]

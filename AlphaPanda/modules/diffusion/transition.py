@@ -3,6 +3,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+torch.set_default_dtype(torch.float64)
+
+import pdb
+
 from AlphaPanda.modules.common.layers import clampped_one_hot
 from AlphaPanda.modules.common.so3 import ApproxAngularDistribution, random_normal_so3, so3vec_to_rotation, rotation_to_so3vec
 
@@ -12,7 +16,7 @@ class VarianceSchedule(nn.Module):
     def __init__(self, num_steps=100, s=0.01):
         super().__init__()
         T = num_steps
-        t = torch.arange(0, num_steps+1, dtype=torch.float)
+        t = torch.arange(0, num_steps+1, dtype=torch.float64)
         f_t = torch.cos( (np.pi / 2) * ((t/T) + s) / (1 + s) ) ** 2
         alpha_bars = f_t / f_t[0]
 
@@ -114,7 +118,8 @@ class RotationTransition(nn.Module):
 
         # Scaled true rotation
         R0_scaled = so3vec_to_rotation(c0 * v_0)  # (N, L, 3, 3)
-
+        
+        # pdb.set_trace()
         R_noisy = E_scaled @ R0_scaled
         v_noisy = rotation_to_so3vec(R_noisy)
         v_noisy = torch.where(mask_generate[..., None].expand_as(v_0), v_noisy, v_0)
@@ -170,7 +175,7 @@ class AminoacidCategoricalTransition(nn.Module):
         """
         N, L = x_0.size()
         K = self.num_classes
-        c_0 = clampped_one_hot(x_0, num_classes=K).float() # (N, L, K).
+        c_0 = clampped_one_hot(x_0, num_classes=K).to(torch.float64) # (N, L, K).
         alpha_bar = self.var_sched.alpha_bars[t][:, None, None] # (N, 1, 1)
         c_noisy = (alpha_bar*c_0) + ( (1-alpha_bar)/K )
         c_t = torch.where(mask_generate[..., None].expand(N,L,K), c_noisy, c_0)
@@ -191,12 +196,12 @@ class AminoacidCategoricalTransition(nn.Module):
         if x_t.dim() == 3:
             c_t = x_t   # When x_t is probability distribution.
         else:
-            c_t = clampped_one_hot(x_t, num_classes=K).float() # (N, L, K)
+            c_t = clampped_one_hot(x_t, num_classes=K).to(torch.float64) # (N, L, K)
 
         if x_0.dim() == 3:
             c_0 = x_0   # When x_0 is probability distribution.
         else:
-            c_0 = clampped_one_hot(x_0, num_classes=K).float() # (N, L, K)
+            c_0 = clampped_one_hot(x_0, num_classes=K).to(torch.float64) # (N, L, K)
 
         alpha = self.var_sched.alpha_bars[t][:, None, None]     # (N, 1, 1)
         alpha_bar = self.var_sched.alpha_bars[t][:, None, None] # (N, 1, 1)
@@ -216,7 +221,7 @@ class AminoacidCategoricalTransition(nn.Module):
             post:   Posterior probability at (t-1)-th step, (N, L, K).
             x_next: Sample at (t-1)-th step, LongTensor, (N, L).
         """
-        c_t = clampped_one_hot(x_t, num_classes=self.num_classes).float()  # (N, L, K)
+        c_t = clampped_one_hot(x_t, num_classes=self.num_classes).to(torch.float64)  # (N, L, K)
         post = self.posterior(c_t, c_0_pred, t=t)   # (N, L, K)
         post = torch.where(mask_generate[..., None].expand(post.size()), post, c_t)
         x_next = self._sample(post)

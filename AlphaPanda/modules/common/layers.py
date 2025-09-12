@@ -50,7 +50,7 @@ class DistanceToBins(nn.Module):
             bin_idx = torch.argmin(diff, dim=dim, keepdim=True)  # (N, *, 1, *)
             y = torch.zeros_like(diff).scatter_(dim=dim, index=bin_idx, value=1.0)
         else:
-            overflow_symb = (dist >= self.dist_max).float()  # (N, *, 1, *)
+            overflow_symb = (dist >= self.dist_max).to(torch.float64)  # (N, *, 1, *)
             y = dist - self.offset.view(*offset_shape)  # (N, *, num_bins-1, *)
             y = torch.exp(self.coeff * torch.pow(y, 2))  # (N, *, num_bins-1, *)
             y = torch.cat([y, overflow_symb], dim=dim)  # (N, *, num_bins, *)
